@@ -63,4 +63,14 @@ public class MaxWidthLinearLayout extends LinearLayout {
         widthMeasureSpec = MeasureSpec.makeMeasureSpec(newSpecWidth, MeasureSpec.getMode(widthMeasureSpec));
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
+
+    /* ****************************************************************************
+     * Added per Nico's post here, to correct app crash when pressing back button:
+     *    https://discussions.udacity.com/t/
+     *    when-i-add-frame-layout-on-line-13-my-app-crashes/668463/6?u=nico
+     * ****************************************************************************/
+    @Override
+    public boolean hasOverlappingRendering() {
+        return false;
+    }
 }

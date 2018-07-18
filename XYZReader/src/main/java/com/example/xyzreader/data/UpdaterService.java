@@ -9,6 +9,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.RemoteException;
+import android.text.Html;
 import android.text.format.Time;
 import android.util.Log;
 
@@ -60,13 +61,18 @@ public class UpdaterService extends IntentService {
                 throw new JSONException("Invalid parsed item array" );
             }
 
+            String bodyString;
+
             for (int i = 0; i < array.length(); i++) {
                 ContentValues values = new ContentValues();
                 JSONObject object = array.getJSONObject(i);
+
+                bodyString = getFormattedBody(object.getString("body"));
+
                 values.put(ItemsContract.Items.SERVER_ID, object.getString("id" ));
                 values.put(ItemsContract.Items.AUTHOR, object.getString("author" ));
                 values.put(ItemsContract.Items.TITLE, object.getString("title" ));
-                values.put(ItemsContract.Items.BODY, object.getString("body" ));
+                values.put(ItemsContract.Items.BODY, bodyString);
                 values.put(ItemsContract.Items.THUMB_URL, object.getString("thumb" ));
                 values.put(ItemsContract.Items.PHOTO_URL, object.getString("photo" ));
                 values.put(ItemsContract.Items.ASPECT_RATIO, object.getString("aspect_ratio" ));
@@ -82,5 +88,9 @@ public class UpdaterService extends IntentService {
 
         sendStickyBroadcast(
                 new Intent(BROADCAST_ACTION_STATE_CHANGE).putExtra(EXTRA_REFRESHING, false));
+    }
+
+    private String getFormattedBody(String unformattedBody) {
+        return Html.fromHtml(unformattedBody.replaceAll("(\r\n|\n)", "<br />")).toString();
     }
 }

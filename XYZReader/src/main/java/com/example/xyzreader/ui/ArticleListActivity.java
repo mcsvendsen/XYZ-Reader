@@ -1,5 +1,6 @@
 package com.example.xyzreader.ui;
 
+import android.app.ActivityOptions;
 import android.app.LoaderManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -59,12 +60,14 @@ public class ArticleListActivity extends ActionBarActivity implements
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
 
+        postponeEnterTransition();
 
         final View toolbarContainerView = findViewById(R.id.toolbar_container);
 
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        mRecyclerView.setAdapter(null);
         getLoaderManager().initLoader(0, null, this);
 
         if (savedInstanceState == null) {
@@ -112,9 +115,10 @@ public class ArticleListActivity extends ActionBarActivity implements
 
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-        Adapter adapter = new Adapter(cursor);
+        Adapter adapter = new Adapter(this, cursor);
         adapter.setHasStableIds(true);
         mRecyclerView.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
         int columnCount = getResources().getInteger(R.integer.list_column_count);
         StaggeredGridLayoutManager sglm =
                 new StaggeredGridLayoutManager(columnCount, StaggeredGridLayoutManager.VERTICAL);
@@ -128,8 +132,10 @@ public class ArticleListActivity extends ActionBarActivity implements
 
     private class Adapter extends RecyclerView.Adapter<ViewHolder> {
         private Cursor mCursor;
+        private Context mContext;
 
-        public Adapter(Cursor cursor) {
+        public Adapter(Context context, Cursor cursor) {
+            mContext = context;
             mCursor = cursor;
         }
 
@@ -142,12 +148,25 @@ public class ArticleListActivity extends ActionBarActivity implements
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = getLayoutInflater().inflate(R.layout.list_item_article, parent, false);
+//            View sharedView = view.findViewById(R.id.thumbnail);
             final ViewHolder vh = new ViewHolder(view);
+            String transitionName = getString(R.string.transition_image) + (mCursor.getPosition() + 1);
+            Log.d("ArticleListActivity", "TransitionName: " + transitionName);
+            vh.thumbnailView.setTransitionName(transitionName);
+            final Bundle bundle = ActivityOptions.makeSceneTransitionAnimation(
+                    ArticleListActivity.this,
+                    vh.thumbnailView,
+                    transitionName)
+                    .toBundle();
+//            final Bundle bundle = ActivityOptions.makeSceneTransitionAnimation(
+//                    ArticleListActivity.this)
+//                    .toBundle();
+
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     startActivity(new Intent(Intent.ACTION_VIEW,
-                            ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition()))));
+                            ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition()))), bundle);
                 }
             });
             return vh;
