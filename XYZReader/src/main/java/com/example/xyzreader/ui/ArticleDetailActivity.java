@@ -202,4 +202,10 @@ public class ArticleDetailActivity extends AppCompatActivity
     public void onImageLoaded(View sharedView) {
         scheduleStartPostponedTransition(sharedView);
     }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        onSupportNavigateUp();
+    }
 }
